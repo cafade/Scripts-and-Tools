@@ -1,0 +1,75 @@
+#!/bin/bash  
+
+# Wrapper for my frequently used text to speech commands
+# Depends on espeak and mycroft voice "mimic"
+# It does not use getops to avoid the requirement of - or -- before options
+
+help() {
+    cat << EOF
+Example usage: say <option> <argument>
+List of arguments:
+
+es: Use espeak with spanish parameters
+in: Use espeak with english parameters
+convin: Enter interactive shell for english conversation mode
+conves: Enter interactive shell for spanish conversation mode
+    exit: Exit conversation mode
+help: Show this help menu
+EOF
+}
+
+if [ $# -eq 0 ]
+then
+    help
+fi
+
+while [[ ${1} ]]; do
+    case "${1}" in
+        es )
+            shift &&
+                arr=($@)
+                text=$(printf '%s ' "${arr[@]}")
+                espeak -s 120 -ves "$text" >/dev/null  2>&1
+            exit 0
+            ;;
+
+        in )
+            shift &&
+                arr=($@)
+                text=$(printf '%s ' "${arr[@]}")
+                espeak -s 120 "$text" >/dev/null  2>&1
+            exit 0
+            ;;
+        convin )
+            while true; do
+                read
+                if [ "$REPLY" == "exit" ] || [ "$REPLY" == "Exit" ]; then
+                    exit 0
+                else
+                    /home/learnin/mycroft-core/mimic/mimic -t "${REPLY}"
+                fi
+            done
+            exit 0
+            ;;
+        conves )
+            while true; do
+                read
+                if [ "$REPLY" == "exit" ] || [ "$REPLY" == "Exit" ]; then
+                    exit 0
+                else
+                    espeak -s 120 -ves "${REPLY}" >/dev/null  2>&1
+                fi
+            done
+            exit 0
+            ;;
+        -h | help)
+            help
+            exit 0
+            ;;
+        * ) 
+            help
+            exit 1
+    esac
+done
+
+
